@@ -35,12 +35,13 @@ class MainActivity : ComponentActivity() {
         
         val repository = ChatRepository(database.messageDao(), database.conversationDao())
         val chatViewModel = ChatViewModel(repository)
+        val profileManager = com.example.data.ProfileManager(applicationContext)
 
         enableEdgeToEdge()
         setContent {
           MyApplicationTheme(dynamicColor = false) {
             Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                MainScreen(chatViewModel = chatViewModel)
+                MainScreen(chatViewModel = chatViewModel, profileManager = profileManager)
             }
           }
         }

@@ -15,11 +15,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.data.ProfileManager
 import com.example.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileSetupScreen(navController: NavController, onComplete: () -> Unit) {
+fun ProfileSetupScreen(profileManager: ProfileManager, onComplete: () -> Unit) {
     var name by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
     var bio by remember { mutableStateOf("") }
@@ -108,7 +109,10 @@ fun ProfileSetupScreen(navController: NavController, onComplete: () -> Unit) {
             Spacer(modifier = Modifier.weight(1f))
             
             Button(
-                onClick = onComplete,
+                onClick = {
+                    profileManager.saveProfile(name, username, bio)
+                    onComplete()
+                },
                 enabled = isReady,
                 modifier = Modifier
                     .fillMaxWidth()

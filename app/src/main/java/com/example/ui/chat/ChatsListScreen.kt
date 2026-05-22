@@ -33,14 +33,15 @@ fun ChatsListScreen(navController: NavController, viewModel: ChatViewModel) {
     val allConversations by viewModel.allConversations.collectAsState()
     
     var showCreateDialog by remember { mutableStateOf(false) }
+    var showSearchDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Myfa Chat", fontWeight = FontWeight.Bold, color = NeonBlue) },
                 actions = {
-                    IconButton(onClick = { /* Search */ }) {
-                        Icon(Icons.Default.Search, contentDescription = "Search")
+                    IconButton(onClick = { showSearchDialog = true }) {
+                        Icon(Icons.Default.Search, contentDescription = "Search Users")
                     }
                     IconButton(onClick = { navController.navigate("settings") }) {
                         Icon(Icons.Default.Settings, contentDescription = "Settings", tint = MaterialTheme.colorScheme.primary)
@@ -152,7 +153,70 @@ fun ChatsListScreen(navController: NavController, viewModel: ChatViewModel) {
                 }
             )
         }
+        
+        if (showSearchDialog) {
+            SearchPeerDialog(
+                onDismiss = { showSearchDialog = false },
+                onPeerFound = { username -> 
+                    // Simulate finding the user and creating a private chat.
+                    viewModel.createConversation(
+                        name = username,
+                        type = "PRIVATE",
+                        networkType = "BLUETOOTH"
+                    ) { id ->
+                        showSearchDialog = false
+                        viewModel.setActiveConversation(id)
+                        navController.navigate("chat_detail")
+                    }
+                }
+            )
+        }
     }
+}
+
+@Composable
+fun SearchPeerDialog(onDismiss: () -> Unit, onPeerFound: (String) -> Unit) {
+    var searchQuery by remember { mutableStateOf("") }
+    var isSearching by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Discover Nearby Peers") },
+        text = {
+            Column {
+                Text("Search by username over active Mesh (Bluetooth / Hotspot / WiFi):", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(modifier = Modifier.height(16.dp))
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    label = { Text("@username") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                if (isSearching) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    Text("Scanning Mesh Network...", style = MaterialTheme.typography.labelSmall)
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { 
+                    if (searchQuery.isNotBlank()) {
+                        isSearching = true
+                        // Simulate network delay
+                        onPeerFound(searchQuery)
+                    }
+                }
+            ) {
+                Text("Connect")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel") }
+        }
+    )
 }
 
 @Composable

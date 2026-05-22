@@ -19,13 +19,17 @@ import com.example.ui.connections.ConnectionsScreen
 import com.example.ui.onboarding.ProfileSetupScreen
 import com.example.ui.theme.NeonCyan
 
+import com.example.data.ProfileManager
+
 @Composable
-fun MainScreen(chatViewModel: ChatViewModel) {
+fun MainScreen(chatViewModel: ChatViewModel, profileManager: ProfileManager) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
     val isBottomBarVisible = currentRoute != "profile" && currentRoute != "chat_detail"
+
+    val startDestination = if (profileManager.isSetupCompleteSync) "chat_list" else "profile"
 
     Scaffold(
         bottomBar = {
@@ -70,9 +74,9 @@ fun MainScreen(chatViewModel: ChatViewModel) {
             }
         }
     ) { innerPadding ->
-        NavHost(navController = navController, startDestination = "profile", modifier = Modifier.padding(innerPadding)) {
+        NavHost(navController = navController, startDestination = startDestination, modifier = Modifier.padding(innerPadding)) {
             composable("profile") {
-                ProfileSetupScreen(navController = navController, onComplete = { 
+                ProfileSetupScreen(profileManager = profileManager, onComplete = { 
                     navController.navigate("chat_list") {
                         popUpTo("profile") { inclusive = true }
                     }
@@ -88,7 +92,7 @@ fun MainScreen(chatViewModel: ChatViewModel) {
                 ConnectionsScreen()
             }
             composable("settings") {
-                com.example.ui.settings.SettingsScreen()
+                com.example.ui.settings.SettingsScreen(profileManager = profileManager)
             }
         }
     }

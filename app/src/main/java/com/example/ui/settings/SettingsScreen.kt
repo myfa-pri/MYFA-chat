@@ -14,10 +14,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.example.ui.theme.*
+import com.example.data.ProfileManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen() {
+fun SettingsScreen(profileManager: ProfileManager) {
+    val profile = remember { profileManager.getProfile() }
+    val name = profile["name"] ?: "User"
+    val username = profile["username"] ?: "username"
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -51,8 +56,8 @@ fun SettingsScreen() {
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Yichal", style = MaterialTheme.typography.titleLarge)
-                        Text("@yichal", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(name, style = MaterialTheme.typography.titleLarge)
+                        Text("@$username", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     IconButton(onClick = { /* Edit Profile */ }) {
                         Icon(Icons.Default.Edit, contentDescription = "Edit", tint = NeonPink)

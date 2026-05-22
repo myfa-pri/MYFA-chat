@@ -30,20 +30,32 @@ import com.example.ui.theme.NeonBlue
 import com.example.ui.theme.NeonCyan
 import com.example.ui.theme.NeonPink
 
+import androidx.compose.material.icons.filled.PersonAdd
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(viewModel: ChatViewModel, navController: NavController, modifier: Modifier = Modifier) {
     val messages by viewModel.allMessages.collectAsStateWithLifecycle()
     val activeConv by viewModel.activeConversation.collectAsStateWithLifecycle()
     var input by remember { mutableStateOf("") }
+    var showAddPersonDialog by remember { mutableStateOf(false) }
+    val context = LocalContext.current
     
     val chatName = activeConv?.name ?: "Unknown"
     val networkStatus = "Online via ${activeConv?.networkType ?: "WIFI"}"
     val conversationNetwork = activeConv?.networkType ?: "WIFI"
+    val showAddPersonButton = activeConv?.type == "GROUP" || activeConv?.type == "CHANNEL"
 
     // Fast & lightweight design
     Column(modifier = modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        ChatHeader(name = chatName, status = networkStatus, onBack = { navController.popBackStack() })
+        ChatHeader(
+            name = chatName, 
+            status = networkStatus, 
+            onBack = { navController.popBackStack() },
+            onAddPerson = if (showAddPersonButton) { { showAddPersonDialog = true } } else null
+        )
         
         LazyColumn(
             modifier = Modifier.weight(1f),
@@ -65,11 +77,22 @@ fun ChatScreen(viewModel: ChatViewModel, navController: NavController, modifier:
             }
         )
     }
+
+    if (showAddPersonDialog) {
+        SearchPeerDialog(
+            onDismiss = { showAddPersonDialog = false },
+            onPeerFound = { username ->
+                showAddPersonDialog = false
+                Toast.makeText(context, "$username added to $chatName", Toast.LENGTH_SHORT).show()
+                // In a real database, we would add the user to the active conversation participants here
+            }
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChatHeader(name: String, status: String, onBack: () -> Unit) {
+fun ChatHeader(name: String, status: String, onBack: () -> Unit, onAddPerson: (() -> Unit)? = null) {
     TopAppBar(
         title = { 
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -92,6 +115,11 @@ fun ChatHeader(name: String, status: String, onBack: () -> Unit) {
             }
         },
         actions = {
+            if (onAddPerson != null) {
+                IconButton(onClick = onAddPerson) {
+                    Icon(Icons.Default.PersonAdd, contentDescription = "Add Person")
+                }
+            }
             IconButton(onClick = { /* Call */ }) {
                 Icon(Icons.Default.Videocam, contentDescription = "Video Call")
             }
